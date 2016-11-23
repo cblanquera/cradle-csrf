@@ -63,6 +63,9 @@ class Csrf
         $actual = $request->getStage('csrf');
         $expected = $request->getSession('csrf');
 
+        //no longer needed
+        $request->removeSession('csrf');
+
         if($actual !== $expected) {
             //prepare to error
             $message = $this->app->package('global')->translate(static::ATTACK);
@@ -89,14 +92,12 @@ class Csrf
     public function load(Request $request, Response $response) {
         //render the key
         $key = md5(uniqid());
+        if($request->hasSession('csrf')) {
+            $key = $request->getSession('csrf');
+        }
 
         $request->setSession('csrf', $key);
         $response->setResults('csrf', $key);
-
-        //this does csrf via SESSIONS
-        if(isset($_SESSION)) {
-            $_SESSION['csrf'] = $key;
-        }
 
         return $this;
     }
